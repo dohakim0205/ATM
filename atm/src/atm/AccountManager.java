@@ -1,7 +1,7 @@
 package atm;
 
 import java.util.ArrayList;
-//test
+
 public class AccountManager {
 	private static ArrayList<Account> list = new ArrayList<Account>();
 
