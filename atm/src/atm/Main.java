@@ -5,6 +5,5 @@ public class Main {
 		
 		Bank bank = new Bank("DOHA BANK");
 		bank.run();
-		
 	}
 }

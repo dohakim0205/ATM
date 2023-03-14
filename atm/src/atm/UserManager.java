@@ -3,9 +3,8 @@ package atm;
 import java.util.ArrayList;
 
 public class UserManager {
-	private AccountManager userAM = new AccountManager();
-	private static ArrayList<User> list;
-
+	private static ArrayList<User> list = new ArrayList<User>();
+	
 	public ArrayList<User> getList() {
 		ArrayList<User> reqObj = new ArrayList<User>();
 		for (int i = 0; i < list.size(); i++) {
@@ -19,7 +18,7 @@ public class UserManager {
 
 		return reqObj;
 	}
-
+	
 	public ArrayList<Account> getAccList(User user) {
 		ArrayList<Account> reqObj = new ArrayList<Account>();
 		for (int i = 0; i < user.getAccs().size(); i++) {
@@ -44,14 +43,6 @@ public class UserManager {
 		deleteUser(index);
 	}
 
-//	private boolean indexCheck(int index) {
-//		if (index >= 0 && index < list.size()) {
-//			return true;
-//		}
-//
-//		return false;
-//	}
-
 	public User getUser(int index) {
 		User user = list.get(index);
 		User reqObj = new User(user);
@@ -64,7 +55,7 @@ public class UserManager {
 		return getUser(index);
 	}
 
-	public void updateUser(int index, User user) {
+	public void setUser(int index, User user) {
 		list.set(index, user);
 	}
 

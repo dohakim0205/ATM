@@ -6,8 +6,8 @@ public class User {
 	private String id;
 	private String password;
 	private String name;
-	private ArrayList<Account> accs;
-
+	private ArrayList<Account> accs = new ArrayList<Account>();
+	
 	public User(User user) {
 		this.id = user.id;
 		this.password = user.password;

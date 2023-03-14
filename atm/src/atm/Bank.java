@@ -78,11 +78,11 @@ public class Bank {
 		}
 
 		else if (selectedMenu == CREATE_ACC) {
-			createAccount();
+			createUserAccount();
 		}
 
 		else if (selectedMenu == DELETE_ACC) {
-			deleteAccount();
+			deleteUserAccount();
 		}
 
 		else if (selectedMenu == LOG_IN) {
@@ -101,14 +101,17 @@ public class Bank {
 		}
 
 		String id = inputString("아이디를");
-		if (checkExistId(id)) {
-			int index = findIndex(id);
-			String password = inputString("비밀번호를");
-			if (userCheck(index, password)) {
-				log = index;
-				System.out.printf("%s님 로그인 되었습니다", this.um.getList().get(log).getName());
-			}
+		String password = inputString("비밀번호를");
+		int index = checkExistId(id);
+		if (index != -1 && passwordCheck(index, password)) {
+			this.log = index;
+			System.out.printf("%s님 로그인 되었습니다\n", this.um.getList().get(this.log).getName());
 		}
+
+		else {
+			System.out.println("회원 정보가 올바르지 않습니다");
+		}
+
 	}
 
 	private void logOut() {
@@ -121,17 +124,6 @@ public class Bank {
 		System.out.println("로그아웃 되었습니다");
 	}
 
-	private int findIndex(String id) {
-		int index = -1;
-		for (int i = 0; i < this.um.getList().size(); i++) {
-			if (this.um.getList().get(i).getId().equals(id)) {
-				index = i;
-			}
-		}
-
-		return index;
-	}
-
 	private boolean threeAccsCheck() {
 		User user = this.um.getUser(this.log);
 		int count = this.um.getAccList(user).size();
@@ -142,23 +134,45 @@ public class Bank {
 		return false;
 	}
 
-	private void deleteAccount() {
+	private void deleteUserAccount() {
 		if (!logInCheck()) {
 			System.out.println("로그인 후 이용 가능합니다");
 			return;
 		}
 
 		String account = inputString("삭제할 계좌번호를");
+		int index = -1;
 		for (int i = 0; i < this.am.getList().size(); i++) {
-			if (account.equals(this.am.getAccount(i))) {
-				this.am.deleteAccount(i);
+			Account acc = this.am.getAccount(i);
+			if (account.equals(acc.getAccountNum())) {
+				index = i;
 			}
 		}
 
-		System.out.println("계좌가 삭제되었습니다");
+		if (index != -1) {
+			removeAccount(index);
+			System.out.println("계좌가 삭제되었습니다");
+		}
+
+		else {
+			System.out.println("계좌번호가 올바르지 않습니다");
+		}
 	}
 
-	private void createAccount() {
+	private void removeAccount(int index) {
+		User user = this.um.getUser(this.log);
+		ArrayList<Account> temp = user.getAccs();
+		for (int i = 0; i < temp.size(); i++) {
+			if (temp.get(i).equals(this.am.getAccount(index))) {
+				temp.remove(i);
+			}
+		}
+		User newUser = new User(user.getId(), user.getPassword(), user.getName(), temp);
+		this.am.deleteAccount(index);
+		this.um.setUser(index, newUser);
+	}
+
+	private void createUserAccount() {
 		if (!logInCheck()) {
 			System.out.println("로그인 후 이용 가능합니다");
 			return;
@@ -169,9 +183,20 @@ public class Bank {
 			return;
 		}
 
-		Account acc = new Account();
-		this.am.createAccount(acc);
+		Account acc = addUserAccount();
 		System.out.printf("%s님, 계좌가 개설되었습니다\n계좌번호 : %s\n", this.um.getUser(this.log).getName(), acc.getAccountNum());
+	}
+
+	private Account addUserAccount() {
+		User user = this.um.getUser(this.log);
+		ArrayList<Account> temp = user.getAccs();
+		Account acc = new Account();
+		temp.add(acc);
+		this.am.createAccount(acc);
+		User newUser = new User(user.getId(), user.getPassword(), user.getName(), temp);
+		this.um.setUser(this.log, newUser);
+
+		return acc;
 	}
 
 	private boolean logInCheck() {
@@ -182,18 +207,18 @@ public class Bank {
 		return true;
 	}
 
-	private boolean checkExistId(String id) {
-		ArrayList<User> temp = this.um.getList();
-		for (User user : temp) {
+	private int checkExistId(String id) {
+		int index = -1;
+		for (int i = 0; i < this.um.getList().size(); i++) {
+			User user = this.um.getUser(i);
 			if (user.getId().equals(id)) {
-				return true;
+				index = i;
 			}
 		}
-
-		return false;
+		return index;
 	}
 
-	private boolean userCheck(int index, String password) {
+	private boolean passwordCheck(int index, String password) {
 		if (this.um.getList().get(index).getPassword().equals(password)) {
 			return true;
 		}
@@ -203,7 +228,8 @@ public class Bank {
 
 	private void joinUser() {
 		String id = inputString("사용할 아이디를");
-		if (checkExistId(id)) {
+		int index = checkExistId(id);
+		if (index == -1) {
 			String password = inputString("사용할 비밀번호를");
 			String name = inputString("이름을");
 			User user = new User(id, password, name);
@@ -219,7 +245,7 @@ public class Bank {
 		}
 
 		String password = inputString("계정을 삭제하려면 비밀 번호를");
-		if (userCheck(log, password)) {
+		if (passwordCheck(log, password)) {
 			this.um.deleteUser(this.log);
 			this.log = -1;
 			System.out.println("계정이 삭제되었습니다");
@@ -227,12 +253,8 @@ public class Bank {
 	}
 
 	public void run() {
-		selectMenu();
-		// ATM 프로젝트
-		// 회원가입/탈퇴
-		// 계좌신청/철회(1인 3계좌까지)
-		// 로그인
+		while (true) {
+			selectMenu();
+		}
 	}
-	// * 뱅크에는 뱅킹 관련 메소드
-
 }
