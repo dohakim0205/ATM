@@ -6,8 +6,8 @@ public class AccountManager {
 
 	private static ArrayList<Account> list = new ArrayList<Account>();
 
-	public void createAccount(String id) {
-		Account account = new Account(id);
+	public void createAccount(Account acc) {
+		Account account = new Account(acc);
 		list.add(account);
 	}
 
@@ -15,40 +15,26 @@ public class AccountManager {
 		list.remove(index);
 	}
 
-	public void deleteAccountById(String id) {
-		int index = findUserIndex(id);
-		deleteAccount(index);
-	}
-
 	public Account getAccount(int index) {
 		Account acc = list.get(index);
-		String id = acc.getId();
 		String accountNum = acc.getAccountNum();
-		Account reqObj = new Account(id);
-		reqObj.setAccountNum(accountNum);
-
+		Account reqObj = new Account(accountNum);
 		return reqObj;
 	}
 
-	public Account getAccountById(String id) {
-		int index = findUserIndex(id);
-		return getAccount(index);
-	}
-
-	public void updateAccount(int index, Account account) {
+	public void setAccount(int index, Account account) {
 		list.set(index, account);
 	}
-
-	private int findUserIndex(String id) {
-		int index = -1;
-		for (int i = 0; i < list.size(); i++) {
-			Account temp = list.get(i);
-			if (temp.getId().equals(id)) {
-				index = i;
-			}
+	
+	public ArrayList<Account> getList(){
+		ArrayList<Account> reqObj = new ArrayList<Account>();
+		for(int i = 0; i < list.size(); i ++) {
+			String accountNum = list.get(i).getAccountNum();
+			Account acc = new Account(accountNum);
+			reqObj.add(acc);
 		}
-
-		return index;
+		
+		return reqObj;
 	}
 
 	/*

@@ -6,9 +6,5 @@ public class Main {
 		Bank bank = new Bank("DOHA BANK");
 		bank.run();
 		
-		// ATM 프로젝트
-		// 회원가입/탈퇴
-		// 계좌신청/철회(1인 3계좌까지)
-		// 로그인
 	}
 }

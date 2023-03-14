@@ -5,12 +5,19 @@ import java.util.Random;
 public class Account {
 	private Random random;
 	private String accountNum;
-	private String id;
+	private static int LIMIT = 3;
 	
-	public Account(String id) {
+	public Account() {
 		this.random = new Random();
-		this.id = id;
 		randomAccount();
+	}
+	
+	public Account(String accountNum) {
+		this.accountNum = accountNum;
+	}
+	
+	public Account(Account acc) {
+		this.accountNum = acc.accountNum;
 	}
 	
 	private void randomAccount() {
@@ -25,10 +32,6 @@ public class Account {
 	
 	public void setAccountNum(String accountNum) {
 		this.accountNum = accountNum;
-	}
-	
-	public String getId() {
-		return this.id;
 	}
 	
 	@Override
