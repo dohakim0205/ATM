@@ -4,6 +4,7 @@ import java.util.ArrayList;
 
 public class AccountManager {
 	private static ArrayList<Account> list = new ArrayList<Account>();
+	public static int LIMIT = 3;
 
 	public void createAccount(Account acc) {
 		Account account = new Account(acc);
@@ -24,19 +25,15 @@ public class AccountManager {
 	public void setAccount(int index, Account account) {
 		list.set(index, account);
 	}
-	
-	public ArrayList<Account> getList(){
+
+	public static ArrayList<Account> getList() {
 		ArrayList<Account> reqObj = new ArrayList<Account>();
-		for(int i = 0; i < list.size(); i ++) {
-			String accountNum = list.get(i).getAccountNum();
+		for (Account temp : list) {
+			String accountNum = temp.getAccountNum();
 			Account acc = new Account(accountNum);
 			reqObj.add(acc);
 		}
-		
+
 		return reqObj;
 	}
-
-	/*
-	 * Account¿¡ ´ëÇÑ Create Read Update Delete
-	 */
 }

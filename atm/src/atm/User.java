@@ -6,21 +6,14 @@ public class User {
 	private String id;
 	private String password;
 	private String name;
-	private ArrayList<Account> accs = new ArrayList<Account>();
-	
+	private ArrayList<Account> accs;
+
 	public User(User user) {
 		this.id = user.id;
 		this.password = user.password;
 		this.name = user.name;
 		this.accs = user.accs;
 	}
-	
-	public User(String id, String password, String name) {
-		this.id = id;
-		this.password = password;
-		this.name = name;
-	}
-
 
 	public User(String id, String password, String name, ArrayList<Account> accs) {
 		this.id = id;
@@ -60,7 +53,8 @@ public class User {
 
 	@Override
 	public String toString() {
-		return String.format("ID : %s, PW : %s", this.id, this.password);
+		return String.format("ID : %s, PW : %s, NAME : %s\nACCOUNT LIST) %s", this.id, this.password, this.name,
+				this.accs.toString());
 	}
 
 }

@@ -10,12 +10,16 @@ public class Bank {
 	private UserManager um;
 	private AccountManager am;
 	private int log;
+	private String adminId = "admin";
+	private String adminPassword = "admin";
 	private static final int JOIN_USER = 1;
 	private static final int DELETE_USER = 2;
 	private static final int CREATE_ACC = 3;
 	private static final int DELETE_ACC = 4;
 	private static final int LOG_IN = 5;
 	private static final int LOG_OUT = 6;
+	private static final int EXIT = 7;
+	private static final int ADMIN = 0;
 
 	public Bank(String name) {
 		this.scan = new Scanner(System.in);
@@ -23,6 +27,8 @@ public class Bank {
 		this.am = new AccountManager();
 		this.name = name;
 		this.log = -1;
+		this.adminId = "admin";
+		this.adminPassword = "admin";
 	}
 
 	private int inputInt(String message) {
@@ -30,17 +36,18 @@ public class Bank {
 			System.out.println(message + " 입력하세요");
 			int num = -1;
 			try {
-				num = scan.nextInt();
+				num = this.scan.nextInt();
 				return num;
 			} catch (InputMismatchException e) {
-				System.err.println("숫자를 입력하세요");
+				System.err.println("숫자를 입력하시기 바랍니다");
+				scan.nextLine();
 			}
 		}
 	}
 
 	private String inputString(String message) {
 		System.out.println(message + " 입력하세요");
-		String str = scan.next();
+		String str = this.scan.next();
 		return str;
 	}
 
@@ -52,12 +59,14 @@ public class Bank {
 		System.out.println("4. 계좌 삭제");
 		System.out.println("5. 로그인");
 		System.out.println("6. 로그아웃");
+		System.out.println("7. 종료");
+		System.out.println("0. 관리자 모드");
 	}
 
 	private int inputMenu() {
 		while (true) {
 			int menu = inputInt("메뉴를");
-			if (menu < JOIN_USER || menu > LOG_OUT) {
+			if (menu < ADMIN || menu > EXIT) {
 				System.out.println("존재하지 않는 메뉴입니다");
 				continue;
 			}
@@ -65,7 +74,8 @@ public class Bank {
 		}
 	}
 
-	private void selectMenu() {
+	private boolean selectMenu() {
+		isLoggedInUser();
 		printMenu();
 		int selectedMenu = inputMenu();
 
@@ -92,6 +102,114 @@ public class Bank {
 		else if (selectedMenu == LOG_OUT) {
 			logOut();
 		}
+
+		else if (selectedMenu == EXIT) {
+			System.out.println("*ATM을 종료합니다*");
+			return false;
+		}
+
+		else if (selectedMenu == ADMIN) {
+			adminMode();
+		}
+
+		return true;
+	}
+
+	private void adminMode() {
+		if (adminLogIn()) {
+			selectAdminMenu();
+		}
+	}
+
+	private void selectAdminMenu() {
+		while (true) {
+			printAdminMenu();
+			int adminMenu = inputInt("메뉴 번호를");
+			if (adminMenu < 1 || adminMenu > 4) {
+				System.out.println("존재하지 않는 메뉴입니다");
+				continue;
+			}
+
+			if (adminMenu == 1) {
+				printAllUsers();
+			}
+
+			else if (adminMenu == 2) {
+				printAllAccounts();
+			}
+
+			else if (adminMenu == 3) {
+				printselectedUser();
+			}
+
+			else if (adminMenu == 4) {
+				System.out.println("*관리자 모드 종료*");
+				break;
+			}
+		}
+	}
+
+	private void printselectedUser() {
+		String id = inputString("회원의 아이디를");
+		int index = checkExistId(id);
+
+		if (index != -1) {
+			User user = this.um.getUserById(id);
+			System.out.println(user.toString());
+		}
+
+		else {
+			System.out.println("존재하지 않는 아이디입니다");
+		}
+	}
+
+	private void printAllAccounts() {
+		if (AccountManager.getList().size() == 0) {
+			System.out.println("존재하는 회원이 없습니다");
+			return;
+		}
+
+		for (Account acc : AccountManager.getList()) {
+			System.out.println(acc.toString());
+		}
+	}
+
+	private void printAllUsers() {
+		if (UserManager.getList().size() == 0) {
+			System.out.println("존재하는 회원이 없습니다");
+			return;
+		}
+
+		for (User user : UserManager.getList()) {
+			System.out.println(user.toString());
+		}
+	}
+
+	private boolean adminLogIn() {
+		String id = inputString("(ID : admin)관리자 아이디를");
+		String password = inputString("(PW : admin)관리자 비밀번호를");
+		if (id.equals(this.adminId) && password.equals(this.adminPassword)) {
+			System.out.println("관리자 로그인 되었습니다");
+			return true;
+		}
+
+		System.out.println("관리자 아이디 혹은 비밀번호가 올바르지 않습니다");
+		return false;
+	}
+
+	private void printAdminMenu() {
+		System.out.println("===== 관리자 모드 =====");
+		System.out.println("1. 전체 회원 조회");
+		System.out.println("2. 전체 계정 조회");
+		System.out.println("3. 선택 회원 조회");
+		System.out.println("4. 관리자 모드 종료");
+	}
+
+	private void isLoggedInUser() {
+		if (logInCheck()) {
+			User user = this.um.getUser(this.log);
+			System.out.printf("안녕하세요 %s님!\n", user.getName());
+		}
 	}
 
 	private void logIn() {
@@ -105,7 +223,8 @@ public class Bank {
 		int index = checkExistId(id);
 		if (index != -1 && passwordCheck(index, password)) {
 			this.log = index;
-			System.out.printf("%s님 로그인 되었습니다\n", this.um.getList().get(this.log).getName());
+			User user = this.um.getUser(index);
+			System.out.printf("%s님 로그인 되었습니다\n", user.getName());
 		}
 
 		else {
@@ -124,14 +243,43 @@ public class Bank {
 		System.out.println("로그아웃 되었습니다");
 	}
 
-	private boolean threeAccsCheck() {
+	private boolean limitAccsCountCheck() {
 		User user = this.um.getUser(this.log);
-		int count = this.um.getAccList(user).size();
+		int count = user.getAccs().size();
 		if (count == 3) {
 			return true;
 		}
 
 		return false;
+	}
+
+	private int findAccountIndex(String accountNum) {
+		int index = -1;
+		for (int i = 0; i < AccountManager.getList().size(); i++) {
+			Account acc = AccountManager.getList().get(i);
+			if (accountNum.equals(acc.getAccountNum())) {
+				index = i;
+			}
+		}
+
+		return index;
+	}
+
+	private void updateUserAccount(User user, String accountNum) {
+		ArrayList<Account> temp = user.getAccs();
+		for (int i = 0; i < temp.size(); i++) {
+			Account acc = temp.get(i);
+			if (acc.getAccountNum().equals(accountNum)) {
+				temp.remove(i);
+			}
+		}
+
+		String id = user.getId();
+		String password = user.getPassword();
+		String name = user.getName();
+
+		user = new User(id, password, name, temp);
+		this.um.setUser(this.log, user);
 	}
 
 	private void deleteUserAccount() {
@@ -140,17 +288,16 @@ public class Bank {
 			return;
 		}
 
-		String account = inputString("삭제할 계좌번호를");
-		int index = -1;
-		for (int i = 0; i < this.am.getList().size(); i++) {
-			Account acc = this.am.getAccount(i);
-			if (account.equals(acc.getAccountNum())) {
-				index = i;
-			}
-		}
+		User user = this.um.getUser(this.log);
+		System.out.println("=== 보유 계좌 목록 ===");
+		System.out.println(user.getAccs().toString());
+		String accountNum = inputString("삭제할 계좌번호를");
+
+		int index = findAccountIndex(accountNum);
 
 		if (index != -1) {
-			removeAccount(index);
+			updateUserAccount(user, accountNum);
+			this.am.deleteAccount(index);
 			System.out.println("계좌가 삭제되었습니다");
 		}
 
@@ -159,42 +306,34 @@ public class Bank {
 		}
 	}
 
-	private void removeAccount(int index) {
-		User user = this.um.getUser(this.log);
-		ArrayList<Account> temp = user.getAccs();
-		for (int i = 0; i < temp.size(); i++) {
-			if (temp.get(i).equals(this.am.getAccount(index))) {
-				temp.remove(i);
-			}
-		}
-		User newUser = new User(user.getId(), user.getPassword(), user.getName(), temp);
-		this.am.deleteAccount(index);
-		this.um.setUser(index, newUser);
-	}
-
 	private void createUserAccount() {
 		if (!logInCheck()) {
 			System.out.println("로그인 후 이용 가능합니다");
 			return;
 		}
 
-		if (threeAccsCheck()) {
+		if (limitAccsCountCheck()) {
 			System.out.println("3개 이상 계좌를 개설할 수 없습니다");
 			return;
 		}
 
-		Account acc = addUserAccount();
-		System.out.printf("%s님, 계좌가 개설되었습니다\n계좌번호 : %s\n", this.um.getUser(this.log).getName(), acc.getAccountNum());
+		User user = this.um.getUser(this.log);
+		Account acc = addUserAccount(user);
+		this.am.createAccount(acc);
+		System.out.printf("%s님, 계좌가 개설되었습니다\n계좌번호 : %s\n", user.getName(), acc.getAccountNum());
 	}
 
-	private Account addUserAccount() {
-		User user = this.um.getUser(this.log);
+	private Account addUserAccount(User user) {
 		ArrayList<Account> temp = user.getAccs();
 		Account acc = new Account();
 		temp.add(acc);
-		this.am.createAccount(acc);
-		User newUser = new User(user.getId(), user.getPassword(), user.getName(), temp);
-		this.um.setUser(this.log, newUser);
+
+		String id = user.getId();
+		String password = user.getPassword();
+		String name = user.getName();
+
+		user = new User(id, password, name, temp);
+		this.um.setUser(this.log, user);
 
 		return acc;
 	}
@@ -209,7 +348,7 @@ public class Bank {
 
 	private int checkExistId(String id) {
 		int index = -1;
-		for (int i = 0; i < this.um.getList().size(); i++) {
+		for (int i = 0; i < UserManager.getList().size(); i++) {
 			User user = this.um.getUser(i);
 			if (user.getId().equals(id)) {
 				index = i;
@@ -219,7 +358,8 @@ public class Bank {
 	}
 
 	private boolean passwordCheck(int index, String password) {
-		if (this.um.getList().get(index).getPassword().equals(password)) {
+		User user = this.um.getUser(index);
+		if (user.getPassword().equals(password)) {
 			return true;
 		}
 
@@ -232,7 +372,8 @@ public class Bank {
 		if (index == -1) {
 			String password = inputString("사용할 비밀번호를");
 			String name = inputString("이름을");
-			User user = new User(id, password, name);
+			ArrayList<Account> acc = new ArrayList<Account>();
+			User user = new User(id, password, name, acc);
 			this.um.createUser(user);
 			System.out.printf("%s님 회원 가입 되었습니다!\n", name);
 		}
@@ -244,8 +385,8 @@ public class Bank {
 			return;
 		}
 
-		String password = inputString("계정을 삭제하려면 비밀 번호를");
-		if (passwordCheck(log, password)) {
+		String password = inputString("계정을 삭제하려면 비밀번호를");
+		if (passwordCheck(this.log, password)) {
 			this.um.deleteUser(this.log);
 			this.log = -1;
 			System.out.println("계정이 삭제되었습니다");
@@ -253,8 +394,9 @@ public class Bank {
 	}
 
 	public void run() {
-		while (true) {
-			selectMenu();
+		boolean isRun = true;
+		while (isRun) {
+			isRun = selectMenu();
 		}
 	}
 }

@@ -4,31 +4,23 @@ import java.util.ArrayList;
 
 public class UserManager {
 	private static ArrayList<User> list = new ArrayList<User>();
-	
-	public ArrayList<User> getList() {
+
+	public static ArrayList<User> getList() {
 		ArrayList<User> reqObj = new ArrayList<User>();
 		for (int i = 0; i < list.size(); i++) {
-			String id = list.get(i).getId();
-			String password = list.get(i).getPassword();
-			String name = list.get(i).getName();
-			ArrayList<Account> accs = getAccList(list.get(i));
-			User user = new User(id, password, name, accs);
-			reqObj.add(user);
+			User user = list.get(i);
+			String id = user.getId();
+			String password = user.getPassword();
+			String name = user.getName();
+			ArrayList<Account> accs = user.getAccs();
+
+			User newUser = new User(id, password, name, accs);
+			reqObj.add(newUser);
 		}
 
 		return reqObj;
 	}
-	
-	public ArrayList<Account> getAccList(User user) {
-		ArrayList<Account> reqObj = new ArrayList<Account>();
-		for (int i = 0; i < user.getAccs().size(); i++) {
-			String accountNum = user.getAccs().get(i).getAccountNum();
-			Account acc = new Account(accountNum);
-			reqObj.add(acc);
-		}
-		return reqObj;
-	}
-	
+
 	public void createUser(User user) {
 		User newUser = new User(user);
 		list.add(newUser);
@@ -62,19 +54,12 @@ public class UserManager {
 	private int findUserIndex(String id) {
 		int index = -1;
 		for (int i = 0; i < list.size(); i++) {
-			User temp = list.get(i);
-			if (temp.getId().equals(id)) {
+			User user = list.get(i);
+			if (user.getId().equals(id)) {
 				index = i;
 			}
 		}
 
 		return index;
 	}
-
-	/*
-	 * °èÁÂ¿Í À¯Àú´Â Ä¸½¶È­
-	 * 
-	 * 
-	 * User¿¡ ´ëÇÑ Create Read Update Delete
-	 */
 }
