@@ -4,6 +4,7 @@ import java.util.ArrayList;
 import java.util.InputMismatchException;
 import java.util.Scanner;
 
+//test
 public class Bank {
 	private Scanner scan;
 	private String name;
