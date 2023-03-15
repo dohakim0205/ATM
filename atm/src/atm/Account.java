@@ -1,44 +1,46 @@
 package atm;
 
-import java.util.Random;
-
 public class Account {
-	private Random random;
-	private String accountNum;
 
-	public Account() {
-		this.random = new Random();
-		this.accountNum = "";
-		randomAccount();
+	public static int LIMIT = 3;
+
+	private String userId;
+	private String accNum;
+	private int money;
+
+	public Account(String userId) {
+		this.userId = userId;
 	}
 
-	public Account(String accountNum) {
-		this.accountNum = accountNum;
+	public Account(String userId, String accNum, int money) {
+		this.userId = userId;
+		this.accNum = accNum;
+		this.money = money;
 	}
 
-	public Account(Account acc) {
-		this.accountNum = acc.accountNum;
+	public String getUserId() {
+		return userId;
 	}
 
-	private void randomAccount() {
-		for (int i = 0; i < 4; i++) {
-			this.accountNum += (this.random.nextInt(9000) + 1000);
-			if (i < 3) {
-				this.accountNum += "-";
-			}
-		}
+	public String getAccNum() {
+		return accNum;
+	}
+	
+	public void setAccNum(String accNum) {
+		this.accNum = accNum;
 	}
 
-	public String getAccountNum() {
-		return this.accountNum;
+	public int getMoney() {
+		return money;
 	}
 
-	public void setAccountNum(String accountNum) {
-		this.accountNum = accountNum;
+	public void setMoney(int money) {
+		this.money = money;
 	}
 
 	@Override
 	public String toString() {
-		return String.format("%s", this.accountNum);
+		return String.format("%s : %s, %d¿ø", this.userId, this.accNum, this.money);
 	}
+
 }

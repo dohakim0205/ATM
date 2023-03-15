@@ -3,17 +3,11 @@ package atm;
 import java.util.ArrayList;
 
 public class User {
-	private String id;
-	private String password;
-	private String name;
-	private ArrayList<Account> accs;
 
-	public User(User user) {
-		this.id = user.id;
-		this.password = user.password;
-		this.name = user.name;
-		this.accs = user.accs;
-	}
+	private String id, password, name;
+
+	// new 객체가 아님 -> AccountManager.list 안에 있는 인스턴스
+	private ArrayList<Account> accs;
 
 	public User(String id, String password, String name, ArrayList<Account> accs) {
 		this.id = id;
@@ -23,32 +17,35 @@ public class User {
 	}
 
 	public String getId() {
-		return this.id;
+		return id;
 	}
 
 	public String getPassword() {
-		return this.password;
+		return password;
 	}
 
 	public String getName() {
-		return this.name;
+		return name;
 	}
 
-	public ArrayList<Account> getAccs() {
-		ArrayList<Account> reqObjs = new ArrayList<Account>();
-		for (Account acc : this.accs) {
-			String accountNum = acc.getAccountNum();
-			Account reqObj = new Account(accountNum);
-			reqObjs.add(reqObj);
-		}
-		return reqObjs;
+	public int getAccountSize() {
+		return this.accs.size();
 	}
 
-	public void set(User user) {
-		this.id = user.id;
-		this.password = user.password;
-		this.name = user.name;
-		this.accs = user.accs;
+	public void addAccount(Account account) {
+		this.accs.add(account);
+	}
+	
+	public void removeAccount(Account account) {
+		this.accs.remove(account);
+	}
+
+	public Account getAccount(int index) {
+		return this.accs.get(index);
+	}
+	
+	public ArrayList<Account> getAccountList() {
+		return (ArrayList<Account>) this.accs.clone();
 	}
 
 	@Override
@@ -56,5 +53,4 @@ public class User {
 		return String.format("ID : %s, PW : %s, NAME : %s\nACCOUNT LIST) %s", this.id, this.password, this.name,
 				this.accs.toString());
 	}
-
 }
