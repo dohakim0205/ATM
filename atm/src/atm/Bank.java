@@ -232,7 +232,6 @@ public class Bank {
 				String userData = br.readLine();
 				if (userData.charAt(userData.length() - 1) == '&') {
 					userData = userData.substring(0, userData.length() - 1);
-					System.out.println(userData);
 					loadUserData(userData);
 					break;
 				}
@@ -329,18 +328,23 @@ public class Bank {
 		}
 	}
 
+	private int findUserIndex(User user, Account acc) {
+		int index = -1;
+		for (int i = 0; i < user.getAccountSize(); i++) {
+			Account temp = user.getAccount(i);
+			if (acc.getUserId().equals(temp.getUserId())) {
+				index = i;
+			}
+		}
+		return index;
+	}
+
 	private void sendMoney() {
 		User user = this.um.getUser(this.log);
 		Account acc = userAccCheck(user, "본인 계좌를");
 		String accNum = acc.getAccNum();
 		String toAccNum = inputString("이체할 상대방 계좌를");
-		Account toAcc = null;
-		for (int i = 0; i < this.am.getListSize(); i++) {
-			Account userAcc = this.am.getAccount(i);
-			if (toAccNum.equals(userAcc.getAccNum())) {
-				toAcc = userAcc;
-			}
-		}
+		Account toAcc = this.am.getAccountByNum(toAccNum);
 
 		if (toAcc == null || acc == null) {
 			System.out.println("계좌 정보가 올바르지 않습니다");
@@ -358,26 +362,13 @@ public class Bank {
 			return;
 		}
 
+		int indexMyAcc = findUserIndex(user, acc);
 		User toUser = this.um.getUserById(toAcc.getUserId());
-
-		int indexMyAcc = -1;
-		for (int i = 0; i < user.getAccountSize(); i++) {
-			Account temp = user.getAccount(i);
-			if (acc.getUserId().equals(temp.getUserId())) {
-				indexMyAcc = i;
-			}
-		}
-
-		int indexOtherAcc = -1;
-		for (int i = 0; i < toUser.getAccountSize(); i++) {
-			Account temp = toUser.getAccount(i);
-			if (toAcc.getUserId().equals(temp.getUserId())) {
-				indexOtherAcc = i;
-			}
-		}
+		int indexOtherAcc = findUserIndex(toUser, toAcc);
 
 		acc.setMoney(acc.getMoney() - money);
 		toAcc.setMoney(toAcc.getMoney() + money);
+
 		user.setUserAccountMoney(indexMyAcc, acc.getMoney());
 		toUser.setUserAccountMoney(indexOtherAcc, toAcc.getMoney());
 
@@ -386,7 +377,7 @@ public class Bank {
 
 		this.am.setAccount(indexMy, acc);
 		this.am.setAccount(indexOther, toAcc);
-		System.out.printf("%s님 %d원 이체 되었습니다\n잔액 : %d원\n", this.um.getUser(this.log).getName(), money, acc.getMoney());
+		System.out.printf("%s님 %d원 이체 되었습니다\n잔액 : %d원\n", user.getName(), money, acc.getMoney());
 	}
 
 	private void checkMoney() {
@@ -581,11 +572,6 @@ public class Bank {
 	}
 
 	private void printAllUsers() {
-		if (this.um.getListSize() == 0) {
-			System.out.println("존재하는 회원이 없습니다");
-			return;
-		}
-
 		for (int i = 0; i < this.um.getListSize(); i++) {
 			User user = this.um.getUser(i);
 			System.out.println(user.toString());
