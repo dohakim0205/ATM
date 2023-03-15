@@ -16,9 +16,12 @@ public class UserManager {
 		return null;
 	}
 	
-	public void addUserAccount(User user, Account account) {
-		int index = indexOfById(user.getId());
-		list.get(index).addAccount(account);
+	public void addUserAccountById(String id, Account account) {
+		
+		int index = indexOfById(id);
+		if(index != -1){
+			list.get(index).addAccount(account);
+		}
 	}
 	
 	// Read 

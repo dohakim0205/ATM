@@ -44,6 +44,10 @@ public class User {
 		return this.accs.get(index);
 	}
 	
+	public void setUserAccountMoney(int index, int money) {
+		this.accs.get(index).setMoney(money);
+	}
+	
 	public ArrayList<Account> getAccountList() {
 		return (ArrayList<Account>) this.accs.clone();
 	}

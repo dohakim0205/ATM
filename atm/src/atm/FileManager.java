@@ -12,6 +12,6 @@ public class FileManager {
 	BufferedReader br;
 	
 	public FileManager() {
-		this.file = new File("ATM.text");
+		this.file = new File("ATM.txt");
 	}
 }

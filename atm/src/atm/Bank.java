@@ -84,6 +84,7 @@ public class Bank {
 	private boolean selectMenu() {
 		while (true) {
 			isLoggedInUser();
+			printAllUsers();
 			printMainMenu();
 			int selectedMenu = inputMenu();
 
@@ -198,18 +199,19 @@ public class Bank {
 	}
 
 	private void loadUserData(String userData) {
-
 		String[] temp = userData.split("///");
-		String[] userInfo = temp[0].split("/");
-		String[] userAccs = temp[1].split("//");
-
 		ArrayList<Account> list = new ArrayList<Account>();
-		for (int i = 0; i < userAccs.length; i++) {
-			String[] userAcc = userAccs[i].split("/");
-			Account acc = new Account(userAcc[0], userAcc[1], Integer.parseInt(userAcc[2]));
-			list.add(acc);
+		if (temp.length != 1) {
+			String[] userAccs = temp[1].split("//");
+
+			for (int i = 0; i < userAccs.length; i++) {
+				String[] userAcc = userAccs[i].split("/");
+				Account acc = new Account(userAcc[0], userAcc[1], Integer.parseInt(userAcc[2]));
+				list.add(acc);
+			}
 		}
 
+		String[] userInfo = temp[0].split("/");
 		String id = userInfo[0];
 		String password = userInfo[1];
 		String name = userInfo[2];
@@ -228,8 +230,9 @@ public class Bank {
 
 			while (true) {
 				String userData = br.readLine();
-				if (userData.charAt(userData.length()) != '&') {
+				if (userData.charAt(userData.length() - 1) == '&') {
 					userData = userData.substring(0, userData.length() - 1);
+					System.out.println(userData);
 					loadUserData(userData);
 					break;
 				}
@@ -238,7 +241,7 @@ public class Bank {
 
 			while (true) {
 				String accData = br.readLine();
-				if (accData.charAt(accData.length()) != '&') {
+				if (accData.charAt(accData.length() - 1) == '&') {
 					accData = accData.substring(0, accData.length() - 1);
 					loadAccData(accData);
 					break;
@@ -307,8 +310,8 @@ public class Bank {
 	}
 
 	private void saveFile() {
-		String userData = makeUserData() + "&";
-		String accData = makeAccData() + "&";
+		String userData = makeUserData() + '&' + "\n";
+		String accData = makeAccData() + '&' + "\n";
 		String etc = this.brandName + "/" + this.adminId + "/" + this.adminPassword + "/";
 
 		try {
@@ -327,45 +330,74 @@ public class Bank {
 	}
 
 	private void sendMoney() {
-		Account acc = userAccCheck("본인 계좌를");
-		Account toAcc = userAccCheck("이체할 상대방의 계좌를");
-
-		if (acc != null && toAcc != null) {
-			String accNum = acc.getAccNum();
-			String toAccNum = toAcc.getAccNum();
-
-			int money = inputNumber("이체할 금액을");
-			if (money < 0) {
-				System.out.println("금액이 올바르지 않습니다");
-				return;
+		User user = this.um.getUser(this.log);
+		Account acc = userAccCheck(user, "본인 계좌를");
+		String accNum = acc.getAccNum();
+		String toAccNum = inputString("이체할 상대방 계좌를");
+		Account toAcc = null;
+		for (int i = 0; i < this.am.getListSize(); i++) {
+			Account userAcc = this.am.getAccount(i);
+			if (toAccNum.equals(userAcc.getAccNum())) {
+				toAcc = userAcc;
 			}
-
-			if (acc.getMoney() - money < 0) {
-				System.out.println("이체할 금액이 부족합니다");
-				return;
-			}
-
-			acc.setMoney(acc.getMoney() - money);
-			toAcc.setMoney(toAcc.getMoney() + money);
-			int indexMy = this.am.indexOfByAccNum(accNum);
-			int indexOther = this.am.indexOfByAccNum(toAccNum);
-			this.am.setAccount(indexMy, acc);
-			this.am.setAccount(indexOther, toAcc);
-			System.out.printf("%s님 %d원 이체 되었습니다\n잔액 : %d원\n", this.um.getUser(this.log).getName(), money,
-					acc.getMoney());
 		}
+
+		if (toAcc == null || acc == null) {
+			System.out.println("계좌 정보가 올바르지 않습니다");
+			return;
+		}
+
+		int money = inputNumber("이체할 금액을");
+		if (money < 0) {
+			System.out.println("금액이 올바르지 않습니다");
+			return;
+		}
+
+		if (acc.getMoney() - money < 0) {
+			System.out.println("이체할 금액이 부족합니다");
+			return;
+		}
+
+		User toUser = this.um.getUserById(toAcc.getUserId());
+
+		int indexMyAcc = -1;
+		for (int i = 0; i < user.getAccountSize(); i++) {
+			Account temp = user.getAccount(i);
+			if (acc.getUserId().equals(temp.getUserId())) {
+				indexMyAcc = i;
+			}
+		}
+
+		int indexOtherAcc = -1;
+		for (int i = 0; i < toUser.getAccountSize(); i++) {
+			Account temp = toUser.getAccount(i);
+			if (toAcc.getUserId().equals(temp.getUserId())) {
+				indexOtherAcc = i;
+			}
+		}
+
+		acc.setMoney(acc.getMoney() - money);
+		toAcc.setMoney(toAcc.getMoney() + money);
+		user.setUserAccountMoney(indexMyAcc, acc.getMoney());
+		toUser.setUserAccountMoney(indexOtherAcc, toAcc.getMoney());
+
+		int indexMy = this.am.indexOfByAccNum(accNum);
+		int indexOther = this.um.indexOfById(toAcc.getUserId());
+
+		this.am.setAccount(indexMy, acc);
+		this.am.setAccount(indexOther, toAcc);
+		System.out.printf("%s님 %d원 이체 되었습니다\n잔액 : %d원\n", this.um.getUser(this.log).getName(), money, acc.getMoney());
 	}
 
 	private void checkMoney() {
-		Account acc = userAccCheck("조회할 계좌를");
+		User user = this.um.getUser(this.log);
+		Account acc = userAccCheck(user, "조회할 계좌를");
 		if (acc != null) {
 			System.out.println(acc.toString());
 		}
 	}
 
-	private Account userAccCheck(String message) {
-		User user = this.um.getUser(this.log);
-
+	private Account userAccCheck(User user, String message) {
 		if (!existAccountCheck(user)) {
 			System.out.println("계좌가 존재하지 않습니다");
 			return null;
@@ -388,7 +420,8 @@ public class Bank {
 	}
 
 	private void drawMoney() {
-		Account acc = userAccCheck("출금할 계좌를");
+		User user = this.um.getUser(this.log);
+		Account acc = userAccCheck(user, "출금할 계좌를");
 
 		if (acc != null) {
 			String accNum = acc.getAccNum();
@@ -407,8 +440,7 @@ public class Bank {
 			acc.setMoney(acc.getMoney() - money);
 			int index = this.am.indexOfByAccNum(accNum);
 			this.am.setAccount(index, acc);
-			System.out.printf("%s님 %d원 출금 되었습니다\n잔액 : %d원\n", this.um.getUser(this.log).getName(), money,
-					acc.getMoney());
+			System.out.printf("%s님 %d원 출금 되었습니다\n잔액 : %d원\n", user.getName(), money, acc.getMoney());
 		}
 	}
 
@@ -421,7 +453,8 @@ public class Bank {
 	}
 
 	private void inputMoney() {
-		Account acc = userAccCheck("입금할 계좌를");
+		User user = this.um.getUser(this.log);
+		Account acc = userAccCheck(user, "입금할 계좌를");
 
 		if (acc != null) {
 			String accNum = acc.getAccNum();
@@ -434,8 +467,7 @@ public class Bank {
 			acc.setMoney(money + acc.getMoney());
 			int index = this.am.indexOfByAccNum(accNum);
 			this.am.setAccount(index, acc);
-			System.out.printf("%s님 %d원 입금 되었습니다\n잔액 : %d원\n", this.um.getUser(this.log).getName(), money,
-					acc.getMoney());
+			System.out.printf("%s님 %d원 입금 되었습니다\n잔액 : %d원\n", user.getName(), money, acc.getMoney());
 		}
 	}
 
@@ -445,8 +477,7 @@ public class Bank {
 		if (user.getPassword().equals(password)) {
 			if (user.getAccountSize() < Account.LIMIT) {
 				Account account = this.am.createAccount(new Account(user.getId()));
-				this.um.addUserAccount(user, account);
-				System.out.println(user.getAccount(0).toString());
+				this.um.addUserAccountById(user.getId(), account);
 				System.out.printf("%s님, 계좌가 생성되었습니다\n계좌번호 : %s\n", user.getName(), account);
 			}
 
@@ -467,7 +498,7 @@ public class Bank {
 			System.out.println(user.getAccount(i).toString());
 		}
 
-		Account acc = userAccCheck("삭제할 계좌의 계좌번호를");
+		Account acc = userAccCheck(user, "삭제할 계좌의 계좌번호를");
 		if (acc != null) {
 			this.um.deleteUserAccount(user, acc);
 			this.am.deleteAccount(acc);
@@ -653,7 +684,7 @@ public class Bank {
 			System.out.println("로그아웃 후 이용 가능합니다");
 			return;
 		}
-		
+
 		String id = inputString("사용할 아이디를");
 		User check = checkExistId(id);
 
