@@ -67,7 +67,7 @@ public class UserManager {
 	}
 
 	public void deleteUserById(String id) {
-		// 
+		//
 	}
 	
 	public void deleteUserAccount(User user, Account account) {

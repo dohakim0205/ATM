@@ -144,7 +144,7 @@ public class Bank {
 				}
 
 				if (subMenu == 1) {
-					inputMoney();
+					addMoney();
 				}
 
 				else if (subMenu == 2) {
@@ -307,7 +307,7 @@ public class Bank {
 	private void saveFile() {
 		String userData = makeUserData() + "\n&\n";
 		String accData = makeAccData() + "\n&\n";
-		String etc = this.brandName + "/" + this.adminId + "/" + this.adminPassword + "/";
+		String etc = this.brandName + "/" + this.adminId + "/" + this.adminPassword;
 
 		try {
 			FileWriter fw = this.fm.fw;
@@ -324,56 +324,30 @@ public class Bank {
 		}
 	}
 
-	private int findUserIndex(User user, Account acc) {
-		int index = -1;
-		for (int i = 0; i < user.getAccountSize(); i++) {
-			Account temp = user.getAccount(i);
-			if (acc.getUserId().equals(temp.getUserId())) {
-				index = i;
-			}
-		}
-		return index;
-	}
-
 	private void sendMoney() {
 		User user = this.um.getUser(this.log);
 		Account acc = userAccCheck(user, "본인 계좌를");
-		String accNum = acc.getAccNum();
+		if (acc == null) {
+			return;
+		}
+
 		String toAccNum = inputString("이체할 상대방 계좌를");
 		Account toAcc = this.am.getAccountByNum(toAccNum);
 
-		if (toAcc == null || acc == null) {
+		if (toAcc == null) {
 			System.out.println("계좌 정보가 올바르지 않습니다");
 			return;
 		}
 
-		int money = inputNumber("이체할 금액을");
-		if (money < 0) {
-			System.out.println("금액이 올바르지 않습니다");
-			return;
+		int money = inputMoneyCheck();
+		if (isMoneyEnough(acc.getMoney(), money)) {
+			user.setUserAccountMoney(acc, acc.getMoney() - money);
+
+			User toUser = this.um.getUserById(toAcc.getUserId());
+			toUser.setUserAccountMoney(toAcc, toAcc.getMoney() + money);
+
+			System.out.printf("%s님 %d원 이체 되었습니다\n잔액 : %d원\n", user.getName(), money, user.getAccountMoney(acc));
 		}
-
-		if (acc.getMoney() - money < 0) {
-			System.out.println("이체할 금액이 부족합니다");
-			return;
-		}
-
-		int indexMyAcc = findUserIndex(user, acc);
-		User toUser = this.um.getUserById(toAcc.getUserId());
-		int indexOtherAcc = findUserIndex(toUser, toAcc);
-
-		acc.setMoney(acc.getMoney() - money);
-		toAcc.setMoney(toAcc.getMoney() + money);
-
-		user.setUserAccountMoney(indexMyAcc, acc.getMoney());
-		toUser.setUserAccountMoney(indexOtherAcc, toAcc.getMoney());
-
-		int indexMy = this.am.indexOfByAccNum(accNum);
-		int indexOther = this.um.indexOfById(toAcc.getUserId());
-
-		this.am.setAccount(indexMy, acc);
-		this.am.setAccount(indexOther, toAcc);
-		System.out.printf("%s님 %d원 이체 되었습니다\n잔액 : %d원\n", user.getName(), money, acc.getMoney());
 	}
 
 	private void checkMoney() {
@@ -386,7 +360,7 @@ public class Bank {
 
 	private Account userAccCheck(User user, String message) {
 		if (!existAccountCheck(user)) {
-			System.out.println("계좌가 존재하지 않습니다");
+			System.out.println("보유하고 있는 계좌가 없습니다");
 			return null;
 		}
 
@@ -398,6 +372,7 @@ public class Bank {
 				acc = userAcc;
 			}
 		}
+
 		if (acc == null) {
 			System.out.println("계좌 정보가 올바르지 않습니다");
 			return null;
@@ -411,50 +386,53 @@ public class Bank {
 		Account acc = userAccCheck(user, "출금할 계좌를");
 
 		if (acc != null) {
-			String accNum = acc.getAccNum();
+			int money = inputMoneyCheck();
 
-			int money = inputNumber("출금할 금액을");
-			if (money < 0) {
-				System.out.println("금액이 올바르지 않습니다");
-				return;
+			if (isMoneyEnough(acc.getMoney(), money)) {
+				user.setUserAccountMoney(acc, acc.getMoney() - money);
+				System.out.printf("%s님 %d원 출금 되었습니다\n잔액 : %d원\n", user.getName(), money, user.getAccountMoney(acc));
 			}
-
-			if (acc.getMoney() - money < 0) {
-				System.out.println("출금할 금액이 부족합니다");
-				return;
-			}
-
-			acc.setMoney(acc.getMoney() - money);
-			int index = this.am.indexOfByAccNum(accNum);
-			this.am.setAccount(index, acc);
-			System.out.printf("%s님 %d원 출금 되었습니다\n잔액 : %d원\n", user.getName(), money, acc.getMoney());
 		}
 	}
 
-	private boolean existAccountCheck(User user) {
-		if (user.getAccountSize() == 0) {
+	private int inputMoneyCheck() {
+		int money = inputNumber("금액을");
+		if (money <= 0) {
+			System.out.println("금액이 올바르지 않습니다");
+			money = -1;
+			return money;
+		}
+
+		return money;
+	}
+
+	private boolean isMoneyEnough(int myMoney, int inputMoney) {
+		if (myMoney - inputMoney < 0) {
+			System.out.println("출금할 금액이 부족합니다");
 			return false;
 		}
 
 		return true;
 	}
 
-	private void inputMoney() {
+	private boolean existAccountCheck(User user) {
+		if (user.getAccountSize() == 0) {
+			return false;
+		}
+		return true;
+	}
+
+	private void addMoney() {
 		User user = this.um.getUser(this.log);
 		Account acc = userAccCheck(user, "입금할 계좌를");
 
 		if (acc != null) {
-			String accNum = acc.getAccNum();
+			int money = inputMoneyCheck();
 
-			int money = inputNumber("입금할 금액을");
-			if (money < 0) {
-				System.out.println("금액이 올바르지 않습니다");
-				return;
+			if (money != -1) {
+				user.setUserAccountMoney(acc, acc.getMoney() + money);
+				System.out.printf("%s님 %d원 입금 되었습니다\n잔액 : %d원\n", user.getName(), money, user.getAccountMoney(acc));
 			}
-			acc.setMoney(money + acc.getMoney());
-			int index = this.am.indexOfByAccNum(accNum);
-			this.am.setAccount(index, acc);
-			System.out.printf("%s님 %d원 입금 되었습니다\n잔액 : %d원\n", user.getName(), money, acc.getMoney());
 		}
 	}
 

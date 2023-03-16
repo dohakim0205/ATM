@@ -41,12 +41,34 @@ public class User {
 	}
 
 	public Account getAccount(int index) {
-		return this.accs.get(index);
+		Account account = this.accs.get(index);
+		Account reqObj = new Account(account.getUserId(), account.getAccNum(), account.getMoney());
+		return reqObj;
 	}
 	
-	public void setUserAccountMoney(int index, int money) {
-		this.accs.get(index).setMoney(money);
+	public int getAccountMoney(Account account) {
+		int index = indexOfUserAccount(account);
+		return this.accs.get(index).getMoney();
 	}
+
+	private int indexOfUserAccount(Account account) {
+		int index = -1;
+		for (int i = 0; i < this.accs.size(); i++) {
+			Account acc = this.accs.get(i);
+			if (acc.getAccNum().equals(account.getAccNum())) {
+				index = i;
+			}
+		}
+
+		return index;
+	}
+
+	public void setUserAccountMoney(Account account, int money) {
+		int index = indexOfUserAccount(account);
+		this.accs.get(index).setMoney(money);
+	
+	}
+	
 	
 	public ArrayList<Account> getAccountList() {
 		return (ArrayList<Account>) this.accs.clone();

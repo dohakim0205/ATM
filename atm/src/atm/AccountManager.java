@@ -24,7 +24,7 @@ public class AccountManager {
 	public Account getAccount(int index) {
 		Account account = list.get(index);
 
-		Account reqObj = new Account(account.getUserId(), account.getAccNum(), account.getMoney());;
+		Account reqObj = new Account(account.getUserId(), account.getAccNum(), account.getMoney());
 		return reqObj;
 	}
 
@@ -33,7 +33,7 @@ public class AccountManager {
 
 		for(Account object : list) {
 			if(object.getAccNum().equals(accountNum))
-				account = object;
+				account = new Account(object.getUserId(), object.getAccNum(), object.getMoney());
 		}
 
 		return account;
@@ -55,6 +55,11 @@ public class AccountManager {
 	// Update
 	public void setAccount(int index, Account account) {
 		list.set(index, account);
+	}
+	
+	public void setAccountMoney(Account account, int money) {
+		int index = indexOfByAccNum(account.getAccNum());
+		list.get(index).setMoney(money);
 	}
 	
 	// Delete 
