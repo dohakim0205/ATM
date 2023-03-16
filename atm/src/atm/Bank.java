@@ -201,7 +201,7 @@ public class Bank {
 	private void loadUserData(String userData) {
 		String[] temp = userData.split("///");
 		ArrayList<Account> list = new ArrayList<Account>();
-		if (temp.length != 1) {
+		if (temp.length > 1) {
 			String[] userAccs = temp[1].split("//");
 
 			for (int i = 0; i < userAccs.length; i++) {
@@ -230,9 +230,7 @@ public class Bank {
 
 			while (true) {
 				String userData = br.readLine();
-				if (userData.charAt(userData.length() - 1) == '&') {
-					userData = userData.substring(0, userData.length() - 1);
-					loadUserData(userData);
+				if (userData.equals("&")) {
 					break;
 				}
 				loadUserData(userData);
@@ -240,9 +238,7 @@ public class Bank {
 
 			while (true) {
 				String accData = br.readLine();
-				if (accData.charAt(accData.length() - 1) == '&') {
-					accData = accData.substring(0, accData.length() - 1);
-					loadAccData(accData);
+				if (accData.equals("&")) {
 					break;
 				}
 				loadAccData(accData);
@@ -309,8 +305,8 @@ public class Bank {
 	}
 
 	private void saveFile() {
-		String userData = makeUserData() + '&' + "\n";
-		String accData = makeAccData() + '&' + "\n";
+		String userData = makeUserData() + "\n&\n";
+		String accData = makeAccData() + "\n&\n";
 		String etc = this.brandName + "/" + this.adminId + "/" + this.adminPassword + "/";
 
 		try {
